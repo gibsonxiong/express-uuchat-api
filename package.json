@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node --debug ./bin/www",
-    "start redis":"redis-server &"
+    "start redis":"redis-server &",
+    "postinstall": "npm install"
   },
   "dependencies": {
     "alidayu-node": "^1.0.3",
