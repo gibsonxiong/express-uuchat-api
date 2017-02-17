@@ -1,0 +1,21 @@
+//增
+Model.create(doc(s), [callback])
+
+//删
+Model.remove(conditions, [callback])
+Model.findByIdAndRemove(id, [options], [callback])
+Model.findOneAndRemove(conditions, [options], [callback])
+
+//改
+Model.update(conditions, doc, [options], [callback])
+Model.findByIdAndUpdate(id, [update], [options], [callback])
+Model.findOneAndUpdate([conditions], [update], [options], [callback])
+Model.updateMany(conditions, doc, [options], [callback])
+Model.updateOne(conditions, doc, [options], [callback])
+
+
+//查
+Model.find(conditions, [projection], [options], [callback])
+Model.findById(id, [projection], [options], [callback])
+Model.findOne([conditions], [projection], [options], [callback])
+
