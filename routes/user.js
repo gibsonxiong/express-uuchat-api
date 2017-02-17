@@ -6,6 +6,10 @@ var Relation = require('../models/relation');
 var appConfig = require('../config/app-config');
 var checkToken = require('../middlewares/checkToken');
 var userService = require('../services/user');
+var utils = require('../utils');
+var sms = require('../sms');
+var verificationCodesCache = {};				//验证码cache   
+var verificationCodeTimesCache = {};			//验证码请求次数
 
 //登录
 // params:
@@ -71,18 +75,79 @@ router.post('/signin', function (req, res, next) {
 		});
 });
 
+
+
+
 // 登出
 // params:
 //		username
 //		password
 router.post('/signout', function (req, res, next) {
-	
+
+
+});
+
+
+//获取手机验证码
+router.get('/getVerificationCode/:mobile', function (req, res, next) {
+	var mobile = req.params.mobile;
+	var code = utils.verificationCode(4);
+	var effectiveTime = 3000;
+	var maxTimes = 10;																				//最多请求次数(每天)
+	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0;		//请求次数
+	var verificationCodes = verificationCodesCache[mobile]  = verificationCodesCache[mobile] || [];
+
+	if(times > maxTimes) return res.api(null,-1,'今天获取短信验证码次数已到最多次数（'+ maxTimes+'），请明天再试！');
+
+	verificationCodes.push(code);
+	//有效时间effectiveTime过了，就删除
+	setTimeout(()=>{
+		verificationCodes.pop();
+	},effectiveTime);
+
+	sms.send(mobile, code);
+
+	res.api();
+});
+
+//验证手机
+router.post('/checkVerificationCode', function (req, res, next) {
+	var mobile = req.body.mobile;
+	var code = req.body.code;
+	var verificationCodes = verificationCodesCache[mobile]  = verificationCodesCache[mobile] || [];
+
+	//确认成功
+	if(verificationCodes.indexOf(code) === -1) return res.api(null,-1,'短信验证码错误！');
+
+	var mobileToken = jwt.sign(user, appConfig.secret);
+
+	res.api({
+		mobileToken: mobileToken
+	});
 
 });
 
 //注册
 router.post('/signup', function (req, res, next) {
-	
+	var mobileToken = req.body.mobileToken;
+	var username = req.body.username;
+	var password = req.body.password;
+
+	var nickname = req.body.nickname;
+	var gender = req.body.gender;
+
+	User.create({
+			mobile,
+			username,
+			password,
+			nickname,
+			gender
+		})
+		.exec()
+		.then(user => {
+
+		})
+		.catch(res.errorHandler('注册用户失败！'));
 });
 
 //通过账号或手机号查找用户
