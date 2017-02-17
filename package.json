@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "supervisor --debug ./bin/www",
+    "start": "node --debug ./bin/www",
     "start redis":"redis-server &"
   },
   "dependencies": {
