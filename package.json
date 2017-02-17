@@ -1,11 +1,11 @@
 {
-  "name": "express-api",
+  "name": "uuchat-api-express-master",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "node --debug ./bin/www",
     "start redis":"redis-server &",
-    "postinstall": "npm install"
+    // "postinstall": "npm install"
   },
   "dependencies": {
     "alidayu-node": "^1.0.3",
