@@ -17,6 +17,7 @@ var $Schema = new Schema({
 	}
 });
 
+
 $Schema.virtual('_user', {
 	ref: 'user',
 	localField: 'userId',

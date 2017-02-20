@@ -1,5 +1,8 @@
 var express = require('express');
 var router = express.Router();
+var fs = require('fs');
+var path = require('path');
+var multiparty = require('multiparty');
 var jwt = require('jsonwebtoken');
 var User = require('../models/user');
 var Relation = require('../models/relation');
@@ -8,8 +11,9 @@ var checkToken = require('../middlewares/checkToken');
 var userService = require('../services/user');
 var utils = require('../utils');
 var sms = require('../sms');
-var verificationCodesCache = {};				//验证码cache   
-var verificationCodeTimesCache = {};			//验证码请求次数
+var verificationCodesCache = {}; //验证码cache   
+var verificationCodeTimesCache = {}; //验证码请求次数
+var Promise = require('bluebird');
 
 //登录
 // params:
@@ -91,19 +95,19 @@ router.post('/signout', function (req, res, next) {
 //获取手机验证码
 router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	var mobile = req.params.mobile;
-	var code = utils.verificationCode(4);
+	var code = utils.verificationCode(6);
 	var effectiveTime = 3000;
-	var maxTimes = 10;																				//最多请求次数(每天)
-	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0;		//请求次数
-	var verificationCodes = verificationCodesCache[mobile]  = verificationCodesCache[mobile] || [];
+	var maxTimes = 10; //最多请求次数(每天)
+	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0; //请求次数
+	var verificationCodes = verificationCodesCache[mobile] = verificationCodesCache[mobile] || [];
 
-	if(times > maxTimes) return res.api(null,-1,'今天获取短信验证码次数已到最多次数（'+ maxTimes+'），请明天再试！');
+	if (times > maxTimes) return res.api(null, -1, '今天获取短信验证码次数已到最多次数（' + maxTimes + '），请明天再试！');
 
 	verificationCodes.push(code);
 	//有效时间effectiveTime过了，就删除
-	setTimeout(()=>{
+	setTimeout(() => {
 		verificationCodes.pop();
-	},effectiveTime);
+	}, effectiveTime);
 
 	sms.send(mobile, code);
 
@@ -114,10 +118,10 @@ router.get('/getVerificationCode/:mobile', function (req, res, next) {
 router.post('/checkVerificationCode', function (req, res, next) {
 	var mobile = req.body.mobile;
 	var code = req.body.code;
-	var verificationCodes = verificationCodesCache[mobile]  = verificationCodesCache[mobile] || [];
+	var verificationCodes = verificationCodesCache[mobile] = verificationCodesCache[mobile] || [];
 
 	//确认成功
-	if(verificationCodes.indexOf(code) === -1) return res.api(null,-1,'短信验证码错误！');
+	if (verificationCodes.indexOf(code) === -1) return res.api(null, -1, '短信验证码错误！');
 
 	var mobileToken = jwt.sign(user, appConfig.secret);
 
@@ -147,7 +151,7 @@ router.post('/signup', function (req, res, next) {
 		.then(user => {
 
 		})
-		.catch(res.errorHandler('注册用户失败！'));
+		.catch(res.catchHandler('注册用户失败！'));
 });
 
 //通过账号或手机号查找用户
@@ -159,7 +163,7 @@ router.get('/searchUser/:search', checkToken(), function (req, res, next) {
 		.then(user => {
 			res.api(user);
 		})
-		.catch(res.errorHandler('查找用户失败！'));
+		.catch(res.catchHandler('查找用户失败！'));
 });
 
 //申请添加好友
@@ -226,7 +230,7 @@ router.get('/confirmFriend/:userId', checkToken(), function (req, res, next) {
 		.then(relation => {
 			res.api(null);
 		})
-		.catch(res.errorHandler('添加好友失败！'));
+		.catch(res.catchHandler('添加好友失败！'));
 });
 
 //获取新好友列表
@@ -243,7 +247,7 @@ router.get('/getFriendNewList', checkToken(), function (req, res, next) {
 		.then(relations => {
 			res.api(relations);
 		})
-		.catch(res.errorHandler('获取新好友列表失败！'));
+		.catch(res.catchHandler('获取新好友列表失败！'));
 });
 
 //获取好友列表
@@ -276,8 +280,46 @@ router.get('/getFriendList', checkToken(), function (req, res, next) {
 
 			res.api(friendList);
 		})
-		.catch(res.errorHandler('获取好友列表失败！'));
+		.catch(res.catchHandler('获取好友列表失败！'));
 });
+
+//通过手机通讯录查找好友
+router.post('/getUserListByMobiles', checkToken(), function (req, res, next) {
+	var tokenId = req.userId;
+	var mobiles = req.body.mobiles;
+
+	User.find()
+		.where({
+			mobile: {
+				$in: mobiles
+			},
+			nickName: '1'
+		})
+		.select('-password')
+		.exec()
+		.then(users => {
+			if (!users.length) return Promise.reject();
+		})
+		.map(user => {
+			var p = Relation.findOneByUserIds(tokenId, user._id).exec();
+
+			return Promise.all([user, p]);
+		})
+		.then(all => {
+			var users = all.map((pair, i) => {
+				var user = pair[0].toJSON();
+				var relation = pair[1].toJSON();
+
+				user._isFriend = relation ? true : false;
+				return user;
+			});
+
+			res.api(users);
+		})
+		.catch(res.catchHandler('获取手机通讯录好友失败！'));
+});
+
+
 
 //获取关系列表
 router.get('/getRelationList', checkToken(), function (req, res, next) {
@@ -310,7 +352,7 @@ router.get('/getRelationList', checkToken(), function (req, res, next) {
 
 			res.api(newRelations);
 		})
-		.catch(res.errorHandler('获取关系列表失败！'));
+		.catch(res.catchHandler('获取关系列表失败！'));
 });
 
 
@@ -324,7 +366,62 @@ router.get('/getOwn', checkToken(), function (req, res, next) {
 		.then(user => {
 			res.api(user);
 		})
-		.catch(res.errorHandler('获取用户资料失败！'));
+		.catch(res.catchHandler('获取用户资料失败！'));
+});
+
+//修改昵称
+router.post('/modAvatar', checkToken(), function (req, res, next) {
+	var tokenId = req.userId;
+	var form = new multiparty.Form({
+		uploadDir: './public/upload/'
+	});
+
+	var formParse = (req) => {
+		return new Promise((resolve, reject) => {
+			form.parse(req, (err, fields, files) => {
+				if (err) return reject(err);
+
+				resolve({
+					fields,
+					files
+				});
+				
+			});
+		});
+	}
+
+	formParse(req)
+		.then((data) => {
+			// var files = data.files;
+			// var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g,'/');
+			// return src;
+
+			var files = data.files;
+			var filePath =  path.join('D:\\DE\\Projects\\uuchat-api-express-master', files.file[0].path );
+			fs.readFile(filePath, function(err,buffer) {
+				var base64 = buffer.toString('base64');
+				debugger;
+			});
+		})
+		.then(src => {
+			//修改数据库
+			return User.findByIdAndUpdate(tokenId, {
+					avatarSrc: src
+				}, {
+					new: true
+				})
+				.select('-password')
+				.exec()
+		})
+		.then(user => {
+			if (!user) return res.apiResolve(null, -98, '数据出错！');
+
+			//推送修改过的user
+			userService.pushUserModed(user);
+			res.api(user);
+		})
+		.catch(res.catchHandler('修改头像失败！'));
+
 });
 
 //修改昵称
@@ -344,7 +441,7 @@ router.get('/modNickname/:nickname', checkToken(), function (req, res, next) {
 			userService.pushUserModed(user);
 			res.api(user);
 		})
-		.catch(res.errorHandler('修改昵称失败！'));
+		.catch(res.catchHandler('修改昵称失败！'));
 });
 
 //修改性别
@@ -362,7 +459,7 @@ router.get('/modGender/:gender', checkToken(), function (req, res, next) {
 		.then(user => {
 			res.api(user);
 		})
-		.catch(res.errorHandler('修改性别失败！'));
+		.catch(res.catchHandler('修改性别失败！'));
 });
 
 //修改个性签名
@@ -379,7 +476,7 @@ router.get('/modMotto/:motto?', checkToken(), function (req, res, next) {
 		.exec()
 		.then(user => {
 			res.api(user);
-		}).catch(res.errorHandler('修改个性签名失败！'))
+		}).catch(res.catchHandler('修改个性签名失败！'))
 });
 
 
@@ -399,13 +496,15 @@ router.get('/getUser/:userId', checkToken(), function (req, res, next) {
 		.select('-password')
 		.exec()
 		.then(user => {
-			if (!user) Promise.reject(res.customError(null, -1, '没有找到用户！'));
+			if (!user) res.apiResolve(null, -1, '没有找到用户！');
 
-			if (user._id.equals(tokenId)) return Promise.reject(res.customError({
-				user: user,
-				isFriend: null,
-				relationId: null,
-			}, 0, null));
+			if (user._id.equals(tokenId)) {
+				return res.apiResolve({
+					user: user,
+					isFriend: null,
+					relationId: null,
+				}, 0, null);
+			}
 
 			var p = Relation.findOneByUserIds(tokenId, toUserId).exec();
 
@@ -422,7 +521,7 @@ router.get('/getUser/:userId', checkToken(), function (req, res, next) {
 				relationId: relation._id
 			});
 		})
-		.catch(res.errorHandler('获取用户资料失败！'));
+		.catch(res.catchHandler('获取用户资料失败！'));
 
 
 

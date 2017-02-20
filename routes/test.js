@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-console.log(__dirname);
 var User = require('../models/user');
 
 router.get('/getJson', function(req, res, next) {

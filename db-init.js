@@ -5,7 +5,7 @@ var Relation = require('./models/relation');
 var appConfig = require('./config/app-config');
 
 //删除
-Promise.join(User.remove().exec()).then(function(result) {
+Promise.join(User.remove().exec()).then(function(result) { 
 	// console.log('delete user count:' + result[0]);
 	// console.log('delete msg count:' + result[1]);
 
@@ -38,6 +38,7 @@ Promise.join(User.remove().exec()).then(function(result) {
 		username: 'test3',
 		password: '123456',
 		nickname:'tom',
+		mobile:'13527955428',
 		avatarSrc: appConfig.host +'/static/img/avatar3.png',
 	});
 

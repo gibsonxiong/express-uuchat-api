@@ -1,6 +1,8 @@
 var config = {
-	hostname:'192.168.1.103',
-	port:process.env.PORT || '3000',
+	appName:'uuChat',
+	hostname:'192.168.1.104',
+	port:process.env.PORT || '80',
+	domain:'http://www.classscript.com',
 
 	adminId:'5880760300f0f4222811e900',
 

@@ -23,11 +23,7 @@ router.post('/sendMsg', checkToken(), function(req, res, next) {
 
 			//不是好友
 			if(!relation) {
-				return Promise.reject(res.customError(
-					null,
-					-1,
-					'你们还不是朋友，请先添加好友！'
-				));
+				return res.apiResolve( null, -1, '你们还不是朋友，请先添加好友！');
 			}
 
 			//新建信息
@@ -46,7 +42,7 @@ router.post('/sendMsg', checkToken(), function(req, res, next) {
 
 			res.api(msg,0,0);
 		})
-		.catch(res.errorHandler('发送信息失败！'));
+		.catch(res.catchHandler('发送信息失败！'));
 	
 });
 
@@ -64,7 +60,7 @@ router.post('/sendMsg', checkToken(), function(req, res, next) {
 // 		.then(function(msgs){
 // 			res.api(msgs);
 // 		})
-// 		.catch(res.errorHandler('获取聊天消息失败！'));
+// 		.catch(res.catchHandler('获取聊天消息失败！'));
 
 // });
 
