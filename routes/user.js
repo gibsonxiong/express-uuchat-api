@@ -96,8 +96,8 @@ router.post('/signout', function (req, res, next) {
 router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	var mobile = req.params.mobile;
 	var code = utils.verificationCode(6);
-	var effectiveTime = 3000;
-	var maxTimes = 10; //最多请求次数(每天)
+	var effectiveTime = 60000 * 3;
+	var maxTimes = 50; //最多请求次数(每天)
 	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0; //请求次数
 	var verificationCodes = verificationCodesCache[mobile] = verificationCodesCache[mobile] || [];
 
@@ -149,7 +149,7 @@ router.post('/signup', function (req, res, next) {
 		})
 		.exec()
 		.then(user => {
-
+			res.api(null,0,'注册成功！');
 		})
 		.catch(res.catchHandler('注册用户失败！'));
 });
@@ -160,8 +160,8 @@ router.get('/searchUser/:search', checkToken(), function (req, res, next) {
 
 	User.findBySearch(search)
 		.exec()
-		.then(user => {
-			res.api(user);
+		.then(users => {
+			res.api(users);
 		})
 		.catch(res.catchHandler('查找用户失败！'));
 });
@@ -292,15 +292,17 @@ router.post('/getUserListByMobiles', checkToken(), function (req, res, next) {
 		.where({
 			mobile: {
 				$in: mobiles
-			},
-			nickName: '1'
+			}
 		})
 		.select('-password')
 		.exec()
 		.then(users => {
-			if (!users.length) return Promise.reject();
+			if (!users.length) return res.apiResolve([]);
+
+			return users;
 		})
 		.map(user => {
+			//查关系
 			var p = Relation.findOneByUserIds(tokenId, user._id).exec();
 
 			return Promise.all([user, p]);
@@ -308,7 +310,7 @@ router.post('/getUserListByMobiles', checkToken(), function (req, res, next) {
 		.then(all => {
 			var users = all.map((pair, i) => {
 				var user = pair[0].toJSON();
-				var relation = pair[1].toJSON();
+				var relation = pair[1];
 
 				user._isFriend = relation ? true : false;
 				return user;
@@ -385,25 +387,16 @@ router.post('/modAvatar', checkToken(), function (req, res, next) {
 					fields,
 					files
 				});
-				
+
 			});
 		});
 	}
 
 	formParse(req)
 		.then((data) => {
-			// var files = data.files;
-			// var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g,'/');
-			// return src;
-
 			var files = data.files;
-			var filePath =  path.join('D:\\DE\\Projects\\uuchat-api-express-master', files.file[0].path );
-			fs.readFile(filePath, function(err,buffer) {
-				var base64 = buffer.toString('base64');
-				debugger;
-			});
-		})
-		.then(src => {
+			var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g, '/');
+
 			//修改数据库
 			return User.findByIdAndUpdate(tokenId, {
 					avatarSrc: src

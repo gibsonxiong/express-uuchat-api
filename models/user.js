@@ -18,13 +18,12 @@ $Schema.statics.findAdmin = function(callback){
 	return this.findById(appConfig.adminId,callback);
 }
 
-$Schema.statics.findBySearch = function(search,callback){
-	this.find()
+$Schema.statics.findBySearch = function(search){
+	return this.find()
 		.or([
 			{ username: search },
 			{ mobile : search}
-		])
-		.exec(callback);
+		]);
 }
 
 $Schema.methods.comparePassword = function(password,callback){

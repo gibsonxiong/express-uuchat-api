@@ -5,7 +5,7 @@ var config = require('./config/app-config');
  
  exports.send = function(mobile,code){
  	app.smsSend({
-	    sms_free_sign_name: config.appName,
+	    sms_free_sign_name: config.smsSignName,			//
 	    sms_param: {"code": code+'', "appName": config.appName},
 	    rec_num: mobile,
 	    sms_template_code: 'SMS_44390160'

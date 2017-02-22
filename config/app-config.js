@@ -1,5 +1,6 @@
 var config = {
 	appName:'uuChat',
+	smsSignName:'uu聊天',
 	hostname:'192.168.1.104',
 	port:process.env.PORT || '80',
 	domain:'http://www.classscript.com',

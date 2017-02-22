@@ -1,49 +1,118 @@
 var express = require('express');
 var Promise = require('bluebird');
 var router = express.Router();
+var multiparty = require('multiparty');
+var path = require('path');
 var Msg = require('../models/msg');
 var User = require('../models/user');
 var Relation = require('../models/relation');
 var msgService = require('../services/msg');
 var checkToken = require('../middlewares/checkToken');
+var appConfig = require('../config/app-config');
+
 
 
 
 // 发送信息
 // success
-router.post('/sendMsg', checkToken(), function(req, res, next) {
-	var tokenId = req.userId;						//发送者
-	var relationId = req.body.relationId;			//接收者
-	var content = req.body.content;					//内容
+router.post('/sendMsg', checkToken(), function (req, res, next) {
+	var tokenId = req.userId; //发送者
+	var relationId = req.body.relationId; //接收者
+	var content = req.body.content; //内容
 
 	//验证是否为好友
 	Relation.findOneByIdAndUserId(relationId, tokenId)
 		.exec()
-		.then(function(relation){
+		.then(function (relation) {
 
 			//不是好友
-			if(!relation) {
-				return res.apiResolve( null, -1, '你们还不是朋友，请先添加好友！');
+			if (!relation) {
+				return res.apiResolve(null, -1, '你们还不是朋友，请先添加好友！');
 			}
 
 			//新建信息
 			return Msg.create({
-				fromUserId:tokenId,
-				relationId:relationId,
-				content:content
+				fromUserId: tokenId,
+				relationId: relationId,
+				content: content
 			});
 
 		})
-		.then(function(msg){
-			return msg.populate('_fromUser','-password').execPopulate()
+		.then(function (msg) {
+			return msg.populate('_fromUser', '-password').execPopulate()
 		})
-		.then(msg=> {
+		.then(msg => {
 			msgService.pushMsg(msg);
 
-			res.api(msg,0,0);
+			res.api(msg, 0, 0);
 		})
 		.catch(res.catchHandler('发送信息失败！'));
-	
+
+});
+
+// 发送信息
+// success
+router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
+	var tokenId = req.userId; //发送者
+	var relationId = req.body.relationId; //接收者
+	var form = new multiparty.Form({
+		uploadDir: './public/upload/'
+	});
+	var formParse = (req) => {
+		var form = new multiparty.Form({
+			uploadDir: './public/upload/'
+		});
+		return new Promise((resolve, reject) => {
+			form.parse(req, (err, fields, files) => {
+				if (err) return reject(err);
+
+				resolve({
+					fields,
+					files
+				});
+
+			});
+		});
+	}
+
+	formParse(req)
+		.then(data => {
+			var fields = data.fields;
+			//验证是否为好友
+			return Promise.all([data, Relation.findOneByIdAndUserId(fields.relationId[0], tokenId).exec()]);
+		})
+		.then(function (all) {
+			var data = all[0];
+			var relation = all[1];
+
+			//不是好友
+			if (!relation) {
+				return res.apiResolve(null, -1, '你们还不是朋友，请先添加好友！');
+			}
+
+			//保存语音
+			var files = data.files;
+			var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g, '/');
+
+			//新建信息
+			return Msg.create({
+				fromUserId: tokenId,
+				relationId: relation._id,
+				content: src,
+				type: 3
+			});
+		})
+		.then(function (msg) {
+			//join数据
+			return msg.populate('_fromUser', '-password').execPopulate()
+		})
+		.then(msg => {
+			msgService.pushMsg(msg);
+
+			res.api(msg, 0, 0);
+		})
+		.catch(res.catchHandler('发送信息失败！'));
+
 });
 
 
@@ -137,10 +206,10 @@ router.post('/sendMsg', checkToken(), function(req, res, next) {
 // 			}else{
 // 				res.api(null,-1,errMsg);
 // 			}
-		
+
 // 	  });
 
-	
+
 // });
 
 
