@@ -5,7 +5,7 @@ var bcrypt = require('bcryptjs');
 var appConfig = require('../config/app-config');
 
 var $Schema = new Schema({
-	username: String,
+	username: { type: String,  unique: true},
 	password: String,
 	nickname:String,
 	avatarSrc: String,			//头像
@@ -16,6 +16,11 @@ var $Schema = new Schema({
 /*@@@test*/
 $Schema.statics.findAdmin = function(callback){
 	return this.findById(appConfig.adminId,callback);
+}
+
+$Schema.statics.findByUsername = function(username){
+	return this.find()
+		.where({ username: username });
 }
 
 $Schema.statics.findBySearch = function(search){

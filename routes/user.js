@@ -106,7 +106,7 @@ router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	verificationCodes.push(code);
 	//有效时间effectiveTime过了，就删除
 	setTimeout(() => {
-		verificationCodes.pop();
+		verificationCodes.shift();
 	}, effectiveTime);
 
 	sms.send(mobile, code);
@@ -123,7 +123,7 @@ router.post('/checkVerificationCode', function (req, res, next) {
 	//确认成功
 	if (verificationCodes.indexOf(code) === -1) return res.api(null, -1, '短信验证码错误！');
 
-	var mobileToken = jwt.sign(user, appConfig.secret);
+	var mobileToken = jwt.sign(mobile, appConfig.secret);
 
 	res.api({
 		mobileToken: mobileToken
@@ -133,25 +133,58 @@ router.post('/checkVerificationCode', function (req, res, next) {
 
 //注册
 router.post('/signup', function (req, res, next) {
-	var mobileToken = req.body.mobileToken;
-	var username = req.body.username;
-	var password = req.body.password;
+	var form = new multiparty.Form({
+		uploadDir: './public/upload/'
+	});
+	var verify = Promise.promisify(jwt.verify);
+	var formParse = (req) => {
+		return new Promise((resolve, reject) => {
+			form.parse(req, (err, fields, files) => {
+				if (err) return reject(err);
 
-	var nickname = req.body.nickname;
-	var gender = req.body.gender;
+				resolve({
+					fields,
+					files
+				});
 
-	User.create({
-			mobile,
-			username,
-			password,
-			nickname,
-			gender
+			});
+		});
+	}
+
+	//上传图片
+	formParse(req)
+		.then((param) => {
+			var fields = param.fields;
+			var files = param.files;
+			var src = files.avatar?  appConfig.domain + '/' + files.avatar[0].path.replace(/\\/g, '/') : '';
+			var mobileToken = fields.mobileToken[0];
+
+			param.src = src;
+
+			//转化mobileToken
+			return Promise.all([ param, verify(mobileToken, appConfig.secret) ]);
 		})
-		.exec()
+		.then(all => {
+			var param = all[0];
+			var mobile = all[1];
+			var fields = param.fields;
+			var src = param.src;
+
+			//修改数据库
+			return User.create({
+					mobile: mobile,
+					username: fields.username[0],
+					password: fields.password[0],
+					avatarSrc: src,
+					nickname: fields.nickname[0],
+					gender: new Number(fields.gender[0]),
+				})
+		})
 		.then(user => {
-			res.api(null,0,'注册成功！');
+			res.api(null, 0, '注册成功！');
 		})
 		.catch(res.catchHandler('注册用户失败！'));
+
 });
 
 //通过账号或手机号查找用户
@@ -489,7 +522,7 @@ router.get('/getUser/:userId', checkToken(), function (req, res, next) {
 		.select('-password')
 		.exec()
 		.then(user => {
-			if (!user) res.apiResolve(null, -1, '没有找到用户！');
+			if (!user) return res.apiResolve(null, -1, '没有找到用户！');
 
 			if (user._id.equals(tokenId)) {
 				return res.apiResolve({
@@ -508,13 +541,29 @@ router.get('/getUser/:userId', checkToken(), function (req, res, next) {
 			var user = all[0];
 			var relation = all[1];
 
-			res.api({
+			return res.api({
 				user: user,
 				isFriend: !!relation,
 				relationId: relation._id
 			});
 		})
 		.catch(res.catchHandler('获取用户资料失败！'));
+
+
+
+});
+
+//通过用户名查找用户是否存在
+router.get('/existsByUsername/:username', function (req, res, next) {
+	var username = req.params.username;
+
+	User.findByUsername(username)
+		.exec()
+		.then(users => {
+			var isExists = !!users.length;
+			return res.api(isExists);
+		})
+		.catch(res.catchHandler('查找用户失败！'));
 
 
 
