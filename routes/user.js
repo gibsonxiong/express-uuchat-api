@@ -66,7 +66,8 @@ router.post('/signin', function (req, res, next) {
 
 					// json格式返回token
 					res.api({
-						token: token
+						token: token,
+						ownId: user._id
 					});
 
 				} else {
@@ -121,7 +122,7 @@ router.post('/checkVerificationCode', function (req, res, next) {
 	var verificationCodes = verificationCodesCache[mobile] = verificationCodesCache[mobile] || [];
 
 	//确认成功
-	if (verificationCodes.indexOf(code) === -1) return res.api(null, -1, '短信验证码错误！');
+	if (verificationCodes.indexOf(code) === -1) return res.api(null, -1, '验证码不正确！');
 
 	var mobileToken = jwt.sign(mobile, appConfig.secret);
 
@@ -156,13 +157,13 @@ router.post('/signup', function (req, res, next) {
 		.then((param) => {
 			var fields = param.fields;
 			var files = param.files;
-			var src = files.avatar?  appConfig.domain + '/' + files.avatar[0].path.replace(/\\/g, '/') : '';
+			var src = files.avatar ? appConfig.domain + '/' + files.avatar[0].path.replace(/\\/g, '/') : '';
 			var mobileToken = fields.mobileToken[0];
 
 			param.src = src;
 
 			//转化mobileToken
-			return Promise.all([ param, verify(mobileToken, appConfig.secret) ]);
+			return Promise.all([param, verify(mobileToken, appConfig.secret)]);
 		})
 		.then(all => {
 			var param = all[0];
@@ -172,16 +173,17 @@ router.post('/signup', function (req, res, next) {
 
 			//修改数据库
 			return User.create({
-					mobile: mobile,
-					username: fields.username[0],
-					password: fields.password[0],
-					avatarSrc: src,
-					nickname: fields.nickname[0],
-					gender: new Number(fields.gender[0]),
-				})
+				mobile: mobile,
+				username: fields.username[0],
+				password: fields.password[0],
+				avatarSrc: src,
+				nickname: fields.nickname[0],
+				gender: new Number(fields.gender[0]),
+			})
 		})
 		.then(user => {
-			res.api(null, 0, '注册成功！');
+			debugger;
+			res.api(user, 0, '注册成功！');
 		})
 		.catch(res.catchHandler('注册用户失败！'));
 
@@ -444,7 +446,8 @@ router.post('/modAvatar', checkToken(), function (req, res, next) {
 
 			//推送修改过的user
 			userService.pushUserModed(user);
-			res.api(user);
+			return res.api(user);
+			// return res.api(user,-1,'出错啦');
 		})
 		.catch(res.catchHandler('修改头像失败！'));
 
