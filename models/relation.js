@@ -102,35 +102,37 @@ $Schema.statics.findFriend = function (relationId, userId1, callback) {
 
 // @params
 // @return 
-//     null | Query<ObjectId[]>
+//     Query<ObjectId[]>
 $Schema.statics.findFriendIds = function (userId) {
 
-	return new Promise((resove, reject)=>{
+	return new Promise((resove, reject) => {
 		this.find({
-			confirm: true,
-			$or: [
-				{
-					fromUserId: userId,
-				},
-				{
-					toUserId: userId
-				}
-			]
-		}).exec().then(relations => {
-			var friendIds = relations.map(function (relation) {
-				relation = relation.toJSON();
-				if (relation.fromUserId.equals(userId)) {
-					return relation.toUserId;
-				} else if (relation.toUserId.equals(userId)) {
-					return relation.fromUserId;
-				}
-			});
-			resove(friendIds);
+				confirm: true,
+				$or: [{
+						fromUserId: userId,
+					},
+					{
+						toUserId: userId
+					}
+				]
+			})
+			.exec()
+			.then(relations => {
+				var friendIds = relations.map(function (relation) {
+					relation = relation.toJSON();
+					if (relation.fromUserId.equals(userId)) {
+						return relation.toUserId;
+					} else if (relation.toUserId.equals(userId)) {
+						return relation.fromUserId;
+					}
+				});
+				resove(friendIds);
 
-		}).catch((err)=>reject(err));
+			})
+			.catch((err) => reject(err));
 	});
-	
-	
+
+
 
 }
 

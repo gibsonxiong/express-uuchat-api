@@ -207,6 +207,11 @@ router.get('/makeFriend/:userId', checkToken(), function (req, res, next) {
 	var toUserId = req.params.userId;
 	var requestMsg = req.query.requestMsg;
 
+	if(tokenId === toUserId){
+		return res.api(null, -1, '不能添加自己');
+	}
+
+
 	//查找是否已经申请
 	var findPromise1 = Relation
 		.findOne({
@@ -228,11 +233,11 @@ router.get('/makeFriend/:userId', checkToken(), function (req, res, next) {
 	findPromise1.then(function (relation) {
 
 		//如果已经存在，直接返回
-		if (relation) return res.api(null, 1, '您已经申请过了！');
+		if (relation) return res.api(null, -1, '您已经申请过了');
 
 		//查找是否已经被申请
 		findPromise2.then(function (relation) {
-			if (relation) return res.api(null, 2, '该用户申请过你了！');
+			if (relation) return res.api(null, -1, '该用户申请过你了');
 
 			//创建申请
 			Relation.create({
@@ -240,7 +245,7 @@ router.get('/makeFriend/:userId', checkToken(), function (req, res, next) {
 				toUserId: toUserId,
 				requestMsg: requestMsg
 			}, function (err, relation) {
-				if (err) return res.api(null, -1, '申请添加好友失败！');
+				if (err) return res.api(null, -1, '申请添加好友失败');
 
 				res.api(null);
 			});
@@ -547,7 +552,7 @@ router.get('/getUser/:userId', checkToken(), function (req, res, next) {
 			return res.api({
 				user: user,
 				isFriend: !!relation,
-				relationId: relation._id
+				relationId: relation && relation._id
 			});
 		})
 		.catch(res.catchHandler('获取用户资料失败！'));

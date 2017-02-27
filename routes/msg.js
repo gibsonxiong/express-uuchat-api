@@ -92,6 +92,7 @@ router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 
 			//保存语音
 			var files = data.files;
+			var fields = data.fields;
 			var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g, '/');
 
 			//新建信息
@@ -99,7 +100,8 @@ router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 				fromUserId: tokenId,
 				relationId: relation._id,
 				content: src,
-				type: 3
+				type: 3,
+				audioDuration:fields.audioDuration[0]
 			});
 		})
 		.then(function (msg) {

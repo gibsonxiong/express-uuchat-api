@@ -8,6 +8,7 @@ var $Schema = new Schema({
 	relationId:{ type:ObjectId, required:true},
 	content:String,
 	type:{ type:Number, enum:[0,3], default:0 },		//消息类型 0-文本消息 3-语音消息
+	audioDuration:{ type:Number },
 	sendTime:{
 		type:Date,
 		default:Date.now
