@@ -5,7 +5,8 @@ var ObjectId = Schema.Types.ObjectId;
 var $Schema = new Schema({
 	userId:{ type:ObjectId, required:true },
 	content:{ type:String },
-	mediaUrls:{type:String[] },
+	mediaSrcs:{type:[String] },
+	likeUserIds:{type:[String] },
 	publishTime:{
 		type:Date,
 		default:Date.now
@@ -17,6 +18,12 @@ $Schema.virtual('_user',{
 	  localField: 'userId', // Find people where `localField`
 	  foreignField: '_id', // is equal to `foreignField`
 	  justOne:true
+});
+
+$Schema.virtual('_likeUsers',{
+	  ref: 'user', // The model to use
+	  localField: 'likeUserIds', // Find people where `localField`
+	  foreignField: '_id', // is equal to `foreignField`
 });
 
 

@@ -10,6 +10,7 @@ var responseSender = require('./middlewares/responseSender');
 var routers = {
 	user: require('./routes/user'),
 	msg: require('./routes/msg'),
+	timeline: require('./routes/timeline'),
 };
 var app = express();
 var Promise = require('bluebird');
@@ -58,6 +59,7 @@ app.all('*', function (req, res, next) {
 // mount(app);
 app.use('/user', routers.user);
 app.use('/msg', routers.msg);
+app.use('/timeline', routers.timeline);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
