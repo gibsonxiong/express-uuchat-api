@@ -80,6 +80,32 @@ router.post('/signin', function (req, res, next) {
 		});
 });
 
+router.post('/safe', function (req, res, next) {
+	var token = req.body.token;
+	var userId = req.body.userId;
+
+	jwt.verify(token, appConfig.secret, function (err, decoded) {
+		if (err) {
+			res.api(null, -1, 'token不正确');
+		}
+
+		if (userId != decoded.userId) {
+			res.api(null, -1, 'token不正确');
+		}
+
+		User.findById(userId)
+			.exec()
+			.then(users => {
+				if (!users.length) return res.apiResolve(null, -1, 'token不正确')
+				res.api(null);
+			})
+			.catch(res.catchHandler('token不正确'))
+
+
+
+	});
+
+});
 
 
 
@@ -207,7 +233,7 @@ router.get('/makeFriend/:userId', checkToken(), function (req, res, next) {
 	var toUserId = req.params.userId;
 	var requestMsg = req.query.requestMsg;
 
-	if(tokenId === toUserId){
+	if (tokenId === toUserId) {
 		return res.api(null, -1, '不能添加自己');
 	}
 
