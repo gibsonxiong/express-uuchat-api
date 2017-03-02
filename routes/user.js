@@ -86,17 +86,17 @@ router.post('/safe', function (req, res, next) {
 
 	jwt.verify(token, appConfig.secret, function (err, decoded) {
 		if (err) {
-			res.api(null, -1, 'token不正确');
+			res.api(null, -1, 'token解析错误');
 		}
 
 		if (userId != decoded.userId) {
-			res.api(null, -1, 'token不正确');
+			res.api(null, -1, 'token跟userId不匹配');
 		}
 
 		User.findById(userId)
 			.exec()
-			.then(users => {
-				if (!users.length) return res.apiResolve(null, -1, 'token不正确')
+			.then(user => {
+				if (!user) return res.apiResolve(null, -1, '该用户不存在')
 				res.api(null);
 			})
 			.catch(res.catchHandler('token不正确'))
