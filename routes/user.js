@@ -18,7 +18,7 @@ var Promise = require('bluebird');
 //登录
 // params:
 //		username
-//		password
+//		password123
 router.post('/signin', function (req, res, next) {
 
 	if (appConfig.debug) {
