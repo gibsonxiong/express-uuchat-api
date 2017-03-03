@@ -43,6 +43,7 @@ router.get('/getTimelines', checkToken(), function (req, res, next) {
 					.where({
 						timelineId: timeline._id
 					})
+					.populate('_user _atUser', '-password')
 					.exec()
 					.then(comments => {
 						timelineObject._comments = comments;
@@ -162,6 +163,40 @@ router.get('/likeTimeline/:timelineId', checkToken(), function (req, res, next) 
 			res.api(timeline);
 		})
 		.catch(res.catchHandler('点赞失败'))
+
+
+});
+
+//评论
+router.post('/commentTimeline/:timelineId', checkToken(), function (req, res, next) {
+	var tokenId = req.userId;
+	var timelineId = req.params['timelineId'];
+	var atUserId = req.body['atUserId'];
+	var content = req.body['content'];
+
+
+	TimelineComment.create({
+			userId: tokenId,
+			timelineId: timelineId,
+			atUserId: atUserId,
+			content: content,
+		})
+		.then(comment => {
+			return TimelineComment.find()
+				.where({
+					timelineId: timelineId
+				})
+				.populate('_user _atUser', '-password')
+				.exec();
+		})
+		.then(comments => {
+			var data = {
+				_id: timelineId,
+				_comments: comments
+			};
+			res.api(data, 0, '评论成功');
+		})
+		.catch(res.catchHandler('评论失败'));
 
 
 });

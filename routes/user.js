@@ -35,27 +35,31 @@ router.post('/signin', function (req, res, next) {
 	}
 
 	var username = req.body.username;
-	var password = req.body.password;
+	var password = req.body.password + '';
 
 	if (!username || !password) {
 		return res.api(null, -1, '账号或密码错误！');
 	}
 
 
-	User.findOne({
-			username: username
+	User.findOne()
+		.where({
+			$or:[
+				{username: username},
+				{mobile: username},
+			]
 		})
 		.exec()
 		.then((user) => {
 			//没有找到用户
 			if (!user) {
-				res.api(null, -1, '账号或密码错误！');
+				return res.api(null, -1, '账号或密码错误！');
 			}
 
 			// 检查密码
 			user.comparePassword(password, function (err, isMatch) {
 				if (err) {
-					res.api(null, -1, '账号或密码错误！');
+					return res.api(null, -1, '账号或密码错误！');
 				}
 
 				if (isMatch) {
@@ -65,13 +69,13 @@ router.post('/signin', function (req, res, next) {
 					}, appConfig.secret);
 
 					// json格式返回token
-					res.api({
+					return res.api({
 						token: token,
 						ownId: user._id
 					});
 
 				} else {
-					res.api(null, -1, '账号或密码错误！');
+					return res.api(null, -1, '账号或密码错误！');
 				}
 
 
