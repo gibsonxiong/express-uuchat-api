@@ -2,7 +2,6 @@
 # http://git-scm.com/docs/gitignore
 
 
-wap/
 node_modules/
 public/upload/
 npm-debug.log*
