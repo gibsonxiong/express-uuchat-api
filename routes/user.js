@@ -212,7 +212,6 @@ router.post('/signup', function (req, res, next) {
 			})
 		})
 		.then(user => {
-			debugger;
 			res.api(user, 0, '注册成功！');
 		})
 		.catch(res.catchHandler('注册用户失败！'));
