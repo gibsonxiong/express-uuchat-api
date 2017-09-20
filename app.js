@@ -17,7 +17,6 @@ var Promise = require('bluebird');
 var db = require('./db');
 require('./db-init');
 
-
 //sms
 var sms = require('./sms');
 
