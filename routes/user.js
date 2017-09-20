@@ -187,7 +187,7 @@ router.post('/signup', function (req, res, next) {
 		.then((param) => {
 			var fields = param.fields;
 			var files = param.files;
-			var src = files.avatar ? appConfig.domain + '/' + files.avatar[0].path.replace(/\\/g, '/') : '';
+			var src = files.avatar ? '/' + files.avatar[0].path.replace(/\\/g, '/') : '';
 			var mobileToken = fields.mobileToken[0];
 
 			param.src = src;
@@ -465,7 +465,7 @@ router.post('/modAvatar', checkToken(), function (req, res, next) {
 	formParse(req)
 		.then((data) => {
 			var files = data.files;
-			var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g, '/');
+			var src = files.file ? '/' + files.file[0].path.replace(/\\/g, '/') : '';
 
 			//修改数据库
 			return User.findByIdAndUpdate(tokenId, {
@@ -603,7 +603,13 @@ router.get('/existsByUsername/:username', function (req, res, next) {
 		})
 		.catch(res.catchHandler('查找用户失败！'));
 
+});
 
+//通过用户名查找用户是否存在
+router.get('/form', function (req, res, next) {
+	debugger;
+
+	
 
 });
 
