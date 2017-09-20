@@ -83,7 +83,7 @@ router.post('/publish', checkToken(), function (req, res, next) {
 	}
 
 	function resolvePath(path) {
-		return appConfig.domain + '/' + path.replace(/\\/g, '/');
+		return '/' + path.replace(/\\/g, '/');
 	}
 
 	//上传图片

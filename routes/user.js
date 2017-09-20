@@ -21,26 +21,12 @@ var Promise = require('bluebird');
 //		password
 router.post('/signin', function (req, res, next) {
 
-	if (appConfig.debug) {
-		User.findAdmin().then(function (user) {
-
-			var token = jwt.sign(user, appConfig.secret);
-
-			res.api({
-				token: token
-			});
-		});
-
-		return;
-	}
-
 	var username = req.body.username;
 	var password = req.body.password + '';
 
 	if (!username || !password) {
 		return res.api(null, -1, '账号或密码错误！');
 	}
-
 
 	User.findOne()
 		.where({
@@ -127,7 +113,7 @@ router.post('/signout', function (req, res, next) {
 router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	var mobile = req.params.mobile;
 	// var code = utils.verificationCode(6);
-	var code = '111111';
+	var code = '123456';
 	var effectiveTime = 60000 * 3;
 	var maxTimes = 50; //最多请求次数(每天)
 	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0; //请求次数

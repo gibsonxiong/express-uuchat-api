@@ -1,12 +1,8 @@
 var config = {
 	appName:'uuChat',
 	smsSignName:'悠悠聊天',
-	hostname:'192.168.1.107',
+	hostname:'http://192.168.0.105',
 	port:process.env.PORT || '80',
-	port:'8080',
-	domain:'http://www.classscript.com',
-
-	adminId:'5880760300f0f4222811e900',
 
 	debug:false,
 
@@ -14,9 +10,9 @@ var config = {
 	secret:'superSecret',
 
 	//bcrypt
-	saltRounds:10
+	saltRounds:10,
 };
 
-config.host = 'http://'+config.hostname + ':' + config.port;
+config.host = config.hostname + ':' + config.port;
 
 module.exports = config;

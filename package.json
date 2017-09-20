@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon --debug ./bin/www",
-    "start redis": "redis-server &"
+    "start": "nodemon --inspect ./bin/www",
+    "start redis": "redis-server &",
+    "debug":"node-inspector &"
   },
   "dependencies": {
     "alidayu-node": "^1.0.3",

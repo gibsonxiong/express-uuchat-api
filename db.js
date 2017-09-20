@@ -1,11 +1,11 @@
 var mongoose = require('mongoose');
 var Promise = require('bluebird');
 mongoose.Promise = Promise;
-var config = require('./config/mongodb-config');
+var dbConfig = require('./config/mongodb-config');
 
 exports.connect = function() {
-    var dbURI = 'mongodb://' + config.host + ':' + config.port + '/' + config.db + '';
-    var options = config.options;
+    var dbURI = dbConfig.hostname + ':' + dbConfig.port + '/' + dbConfig.db + '';
+    var options = dbConfig.options;
 
     mongoose.connect(dbURI, options, function(err, res) {
         if (err) {

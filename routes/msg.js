@@ -93,7 +93,7 @@ router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 			//保存语音
 			var files = data.files;
 			var fields = data.fields;
-			var src = appConfig.domain + '/' + files.file[0].path.replace(/\\/g, '/');
+			var src = '/' + files.file[0].path.replace(/\\/g, '/');
 
 			//新建信息
 			return Msg.create({

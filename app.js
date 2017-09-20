@@ -57,9 +57,9 @@ app.all('*', function (req, res, next) {
 
 // 挂载路由
 // mount(app);
-app.use('/user', routers.user);
-app.use('/msg', routers.msg);
-app.use('/timeline', routers.timeline);
+app.use('/api/user', routers.user);
+app.use('/api/msg', routers.msg);
+app.use('/api/timeline', routers.timeline);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
