@@ -13,21 +13,30 @@ var $Schema = new Schema({
 	gender:{type:Number, enum:[0,1] ,default:0 },	//性别 0-男 1-女
 	motto:String,				//个性签名
 });
+
 /*@@@test*/
 $Schema.statics.findAdmin = function(callback){
 	return this.findById(appConfig.adminId,callback);
 }
 
+//通过用户名查找
 $Schema.statics.findByUsername = function(username){
 	return this.find()
 		.where({ username: username });
 }
 
-$Schema.statics.findBySearch = function(search){
+//通过手机查找
+$Schema.statics.findByMobile = function(mobile){
+	return this.find()
+		.where({ mobile: mobile });
+}
+
+//通过用户名、手机查找
+$Schema.statics.findByUsernameOrMobile = function(value){
 	return this.find()
 		.or([
-			{ username: search },
-			{ mobile : search}
+			{ username: value },
+			{ mobile : value}
 		]);
 }
 

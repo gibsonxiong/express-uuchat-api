@@ -12,13 +12,13 @@ var userService = require('../services/user');
 var utils = require('../utils');
 var sms = require('../sms');
 var verificationCodesCache = {}; //验证码cache   
-var verificationCodeTimesCache = {}; //验证码请求次数
+var verificationCodeTimesCache = {}; //验证码请求次数cache
 var Promise = require('bluebird');
 
 //登录
 // params:
 //		username
-//		password123
+//		password
 router.post('/signin', function (req, res, next) {
 
 	if (appConfig.debug) {
@@ -126,7 +126,8 @@ router.post('/signout', function (req, res, next) {
 //获取手机验证码
 router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	var mobile = req.params.mobile;
-	var code = utils.verificationCode(6);
+	// var code = utils.verificationCode(6);
+	var code = '111111';
 	var effectiveTime = 60000 * 3;
 	var maxTimes = 50; //最多请求次数(每天)
 	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0; //请求次数
@@ -140,7 +141,8 @@ router.get('/getVerificationCode/:mobile', function (req, res, next) {
 		verificationCodes.shift();
 	}, effectiveTime);
 
-	sms.send(mobile, code);
+	//不发送短信
+	//sms.send(mobile, code);
 
 	res.api();
 });
@@ -154,11 +156,26 @@ router.post('/checkVerificationCode', function (req, res, next) {
 	//确认成功
 	if (verificationCodes.indexOf(code) === -1) return res.api(null, -1, '验证码不正确！');
 
-	var mobileToken = jwt.sign(mobile, appConfig.secret);
+	// 判断手机是否已注册
+	User.findByMobile(mobile)
+		.exec()
+		.then(users => {
+			var isExists = !!users.length;
 
-	res.api({
-		mobileToken: mobileToken
-	});
+			if(isExists){
+				return res.api(null,1,'手机已被注册过');
+			}else{
+				var mobileToken = jwt.sign(mobile, appConfig.secret);
+				
+				res.api({
+					mobileToken: mobileToken
+				});
+			}
+			
+		})
+		.catch(res.catchHandler('查找用户失败！'));
+
+
 
 });
 
@@ -212,7 +229,6 @@ router.post('/signup', function (req, res, next) {
 			})
 		})
 		.then(user => {
-			debugger;
 			res.api(user, 0, '注册成功！');
 		})
 		.catch(res.catchHandler('注册用户失败！'));
@@ -223,7 +239,7 @@ router.post('/signup', function (req, res, next) {
 router.get('/searchUser/:search', checkToken(), function (req, res, next) {
 	var search = req.params.search;
 
-	User.findBySearch(search)
+	User.findByUsernameOrMobile(search)
 		.exec()
 		.then(users => {
 			res.api(users);
