@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "start": "nodemon --inspect ./bin/www",
-    "start redis": "redis-server &",
-    "debug":"node-inspector &"
+    "start:redis": "redis-server &",
+    "start:db":"mongod --config d:\\mongodb\\server\\3.4\\mongodb.config",
+    "debug":"node-inspector &",
+    "prestart":"start:db"
   },
   "dependencies": {
     "alidayu-node": "^1.0.3",

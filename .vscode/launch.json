@@ -4,18 +4,6 @@
             {
                 "type": "node",
                 "request": "launch",
-                "name": "Launch via NPM",
-                "runtimeExecutable": "npm",
-                "runtimeArgs": [
-                    "run-script",
-                    "debug"
-                ],
-                "port": 5858
-            },
-
-            {
-                "type": "node",
-                "request": "launch",
                 "name": "nodemon",
                 "runtimeExecutable": "nodemon",
                 "program": "${workspaceRoot}\\bin\\www",
