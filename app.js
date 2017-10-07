@@ -16,14 +16,14 @@ var routers = {
 var app = express();
 var Promise = require('bluebird');
 
-// //数据库连接
-// var db = require('./db');
-// db.connect();
+//数据库连接
+var db = require('./db');
+db.connect();
 
-// //socket连接
-// var socketServer = require('./socket-server');
-// var server = http.createServer(app);
-// socketServer.attach(server);
+//socket连接
+var socketServer = require('./socket-server');
+var server = http.createServer(app);
+socketServer.attach(server);
 
 // //redisClient
 // var redisClient = require('./redis-client');

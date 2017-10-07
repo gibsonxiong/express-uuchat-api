@@ -2,7 +2,7 @@ var config = {
 	appName:'uuChat',
 	smsSignName:'悠悠聊天',
 	hostname:'http://127.0.0.1',
-	port:process.env.PORT || '80',
+	port:process.env.PORT || 3000,
 
 	debug:false,
 
