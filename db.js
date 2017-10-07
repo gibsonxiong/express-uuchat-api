@@ -9,7 +9,7 @@ exports.connect = function() {
 
     mongoose.connect(dbURI, options, function(err, res) {
         if (err) {
-            console.log('[mongoose log] Error connecting to: ', +dbURI + '. ' + err);
+            console.log('[mongoose log] Error connecting to: ' +dbURI + '. ' + err);
             return process.exit(1);
         } else {
             return console.log('[mongoose log] Successfully connected to: ' + dbURI);
