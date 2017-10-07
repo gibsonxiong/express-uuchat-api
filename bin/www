@@ -8,7 +8,6 @@ var app = require('../app');
 var debug = require('debug')('uuchat-api-express-master:server');
 var http = require('http');
 var config = require('../config/app-config');
-var socketServer = require('../socket-server');
 
 /**
  * Get port from environment and store in Express.
@@ -22,9 +21,6 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
-
-//连接socket
-socketServer.attach(server);
 
 /**
  * Listen on provided port, on all network interfaces.

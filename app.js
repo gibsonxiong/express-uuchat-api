@@ -1,3 +1,4 @@
+var http = require('http');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -14,22 +15,18 @@ var routers = {
 };
 var app = express();
 var Promise = require('bluebird');
-var db = require('./db');
-require('./db-init');
 
-//sms
-var sms = require('./sms');
+// //数据库连接
+// var db = require('./db');
+// db.connect();
 
-// sms.send('13686004518','221');
+// //socket连接
+// var socketServer = require('./socket-server');
+// var server = http.createServer(app);
+// socketServer.attach(server);
 
-
-//redisClient
+// //redisClient
 // var redisClient = require('./redis-client');
-
-
-
-//数据库连接
-db.connect();
 
 
 // uncomment after placing your favicon in /public
