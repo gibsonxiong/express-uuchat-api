@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({
 	extended: false
 }));
 app.use(cookieParser());
-app.use('/wap', express.static(path.join(__dirname, 'wap/www')));
+// app.use('/wap', express.static(path.join(__dirname, 'wap/www')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(responseSender());
 app.use(cors());
@@ -45,20 +45,20 @@ app.use('/api/user', routers.user);
 app.use('/api/msg', routers.msg);
 app.use('/api/timeline', routers.timeline);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-	var err = new Error('Not Found');
-	next(err);
-});
+// // catch 404 and forward to error handler
+// app.use(function (req, res, next) {
+// 	var err = new Error('Not Found');
+// 	next(err);
+// });
 
-// error handler
-app.use(function (err, req, res, next) {
-	// set locals, only providing error in development
-	res.send({
-		code: -1,
-		msg: err.message,
-	});
-});
+// // error handler
+// app.use(function (err, req, res, next) {
+// 	// set locals, only providing error in development
+// 	res.send({
+// 		code: -1,
+// 		msg: err.message,
+// 	});
+// });
 
 
 module.exports = app;
