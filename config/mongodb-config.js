@@ -1,8 +1,8 @@
-module.exports = {
-	'hostname': 'mongodb://127.0.0.1',
-	'port': '27017',
-	'db': 'test',
-	'options': {
+var config = {
+	hostname: 'mongodb://127.0.0.1',
+	port: '27017',
+	db: 'test',
+	options: {
 		db: {
 			native_parser: true
 		},
@@ -12,3 +12,5 @@ module.exports = {
 		}
 	}
 };
+
+module.exports = config;

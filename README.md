@@ -14,6 +14,18 @@ mongodb ~3.4
 
     配置文件启动 mongod --config d:\mongodb\server\3.4\mongodb.config
 
+    linux
+    后台服务启动数据库
+    
+        mongod --dbpath="/var/mongodb/data" --logpath="/var/mongodb/log/mongodb.log" --fork 
+
+    后台服务关闭 
+
+        mongo // 从linux命令行进入mongod命令行
+        > use admin // 切换到管理员模式
+        > db.shutdownServer() // 关闭mongodb服务
+
+
 2.安装和配置nodejs
 
     下载地址：https://nodejs.org/en/download/
