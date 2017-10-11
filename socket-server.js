@@ -12,7 +12,7 @@ var sockets = {};
 io.on('connection', function (socket) {
 
 	//登录
-	socket.on('signin', function (token, ack) {
+	socket.on('login', function (token, ack) {
 
 		var verify = Promise.promisify(jwt.verify);
 
@@ -36,7 +36,7 @@ io.on('connection', function (socket) {
 				//推送存储的消息，如果有的话
 				pushStayMsg(userId);
 
-				console.log('[userId:' + userId + '] signin---------------');
+				console.log('[userId:' + userId + '] login---------------');
 			})
 			.catch(err => {
 				ack(false);
@@ -49,7 +49,7 @@ io.on('connection', function (socket) {
 	socket.on('disconnect', function () {
 		delete sockets[socket.$userId];
 
-		console.log('[userId:' + socket.$userId + '] signout---------------');
+		console.log('[userId:' + socket.$userId + '] logout---------------');
 	});
 
 });

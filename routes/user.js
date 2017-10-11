@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 // params:
 //		username
 //		password
-router.post('/signin', function (req, res, next) {
+router.post('/login', function (req, res, next) {
 
 	var username = req.body.username;
 	var password = req.body.password + '';
@@ -103,7 +103,7 @@ router.post('/safe', function (req, res, next) {
 // params:
 //		username
 //		password
-router.post('/signout', function (req, res, next) {
+router.post('/logout', function (req, res, next) {
 
 
 });
@@ -213,6 +213,35 @@ router.post('/signup', function (req, res, next) {
 				nickname: fields.nickname[0],
 				gender: new Number(fields.gender[0]),
 			})
+		})
+		.then(user => {
+			res.api(user, 0, '注册成功！');
+		})
+		.catch(res.catchHandler('注册用户失败！'));
+
+});
+
+//注册
+router.post('/signup1', function (req, res, next) {
+	var mobileToken = req.body.mobileToken;
+	var username = req.body.username;
+	var password = req.body.password;
+
+	var verify = Promise.promisify(jwt.verify);
+
+	verify(mobileToken, appConfig.secret)
+		.then(mobile => {
+
+			//修改数据库
+			return User.create({
+				mobile: mobile,
+				username: username,
+				password: password,
+				avatarSrc: '',
+				nickname: '',
+				gender: '',
+				motto:''
+			});
 		})
 		.then(user => {
 			res.api(user, 0, '注册成功！');
