@@ -112,8 +112,8 @@ router.post('/logout', function (req, res, next) {
 //获取手机验证码
 router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	var mobile = req.params.mobile;
-	// var code = utils.verificationCode(6);
-	var code = '123456';
+	var code = utils.verificationCode(6);
+	// var code = '123456';
 	var effectiveTime = 60000 * 3;
 	var maxTimes = 50; //最多请求次数(每天)
 	var times = verificationCodeTimesCache[mobile] = verificationCodeTimesCache[mobile] || 0; //请求次数
@@ -128,7 +128,7 @@ router.get('/getVerificationCode/:mobile', function (req, res, next) {
 	}, effectiveTime);
 
 	//不发送短信
-	//sms.send(mobile, code);
+	sms.send(mobile, code);
 
 	res.api();
 });
