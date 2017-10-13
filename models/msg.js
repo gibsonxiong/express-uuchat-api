@@ -7,7 +7,7 @@ var $Schema = new Schema({
 	fromUserId:{ type:ObjectId, required:true },
 	relationId:{ type:ObjectId, required:true},
 	content:String,
-	type:{ type:Number, enum:[0,3], default:0 },		//消息类型 0-文本消息 3-语音消息
+	type:{ type:Number, enum:[0,1,3], default:0 },		//消息类型 0-文本消息 1-图片消息 3-语音消息
 	audioDuration:{ type:Number },
 	sendTime:{
 		type:Date,

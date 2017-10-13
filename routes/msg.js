@@ -13,7 +13,7 @@ var appConfig = require('../config/app-config');
 
 
 
-// 发送信息
+// 发送文字信息
 // success
 router.post('/sendMsg', checkToken(), function (req, res, next) {
 	var tokenId = req.userId; //发送者
@@ -50,7 +50,7 @@ router.post('/sendMsg', checkToken(), function (req, res, next) {
 
 });
 
-// 发送信息
+// 发送语音消息
 // success
 router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 	var tokenId = req.userId; //发送者
@@ -102,6 +102,71 @@ router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 				content: src,
 				type: 3,
 				audioDuration:fields.audioDuration[0]
+			});
+		})
+		.then(function (msg) {
+			//join数据
+			return msg.populate('_fromUser', '-password').execPopulate()
+		})
+		.then(msg => {
+			msgService.pushMsg(msg);
+
+			res.api(msg, 0, 0);
+		})
+		.catch(res.catchHandler('发送信息失败！'));
+
+});
+
+//发送图片消息
+router.post('/sendImgMsg', checkToken(), function (req, res, next) {
+	var tokenId = req.userId; //发送者
+	var relationId = req.body.relationId; //接收者
+	var form = new multiparty.Form({
+		uploadDir: './public/upload/'
+	});
+	var formParse = (req) => {
+		var form = new multiparty.Form({
+			uploadDir: './public/upload/'
+		});
+		return new Promise((resolve, reject) => {
+			form.parse(req, (err, fields, files) => {
+				if (err) return reject(err);
+
+				resolve({
+					fields,
+					files
+				});
+
+			});
+		});
+	}
+
+	formParse(req)
+		.then(data => {
+			var fields = data.fields;
+			//验证是否为好友
+			return Promise.all([data, Relation.findOneByIdAndUserId(fields.relationId[0], tokenId).exec()]);
+		})
+		.then(function (all) {
+			var data = all[0];
+			var relation = all[1];
+
+			//不是好友
+			if (!relation) {
+				return res.apiResolve(null, -1, '你们还不是朋友，请先添加好友！');
+			}
+
+			//保存图片
+			var files = data.files;
+			var fields = data.fields;
+			var src = '/' + files.imgFile[0].path.replace(/\\/g, '/');
+
+			//新建信息
+			return Msg.create({
+				fromUserId: tokenId,
+				relationId: relation._id,
+				content: src,
+				type: 1,
 			});
 		})
 		.then(function (msg) {
