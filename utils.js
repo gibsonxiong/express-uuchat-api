@@ -1,5 +1,4 @@
-//随机生成数字验证码
-function verificationCode(len){
+exports.verificationCode = function (len){
 	var code = '';
 	var nums = [0,1,2,3,4,5,6,7,8,9];
 
@@ -10,6 +9,4 @@ function verificationCode(len){
 	}
 
 	return code;
-}
-
-exports.verificationCode = verificationCode;
+};
