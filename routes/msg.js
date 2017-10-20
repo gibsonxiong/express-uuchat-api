@@ -1,7 +1,6 @@
 var express = require('express');
 var Promise = require('bluebird');
 var router = express.Router();
-var multiparty = require('multiparty');
 var path = require('path');
 var Msg = require('../models/msg');
 var User = require('../models/user');
@@ -9,8 +8,7 @@ var Relation = require('../models/relation');
 var msgService = require('../services/msg');
 var checkToken = require('../middlewares/checkToken');
 var appConfig = require('../config/app-config');
-
-
+var utils = require('../utils');
 
 
 // 发送文字信息
@@ -55,27 +53,8 @@ router.post('/sendMsg', checkToken(), function (req, res, next) {
 router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 	var tokenId = req.userId; //发送者
 	var relationId = req.body.relationId; //接收者
-	var form = new multiparty.Form({
-		uploadDir: './public/upload/'
-	});
-	var formParse = (req) => {
-		var form = new multiparty.Form({
-			uploadDir: './public/upload/'
-		});
-		return new Promise((resolve, reject) => {
-			form.parse(req, (err, fields, files) => {
-				if (err) return reject(err);
 
-				resolve({
-					fields,
-					files
-				});
-
-			});
-		});
-	}
-
-	formParse(req)
+	utils.parseFormData(req)
 		.then(data => {
 			var fields = data.fields;
 			//验证是否为好友
@@ -121,27 +100,8 @@ router.post('/sendAudioMsg', checkToken(), function (req, res, next) {
 router.post('/sendImgMsg', checkToken(), function (req, res, next) {
 	var tokenId = req.userId; //发送者
 	var relationId = req.body.relationId; //接收者
-	var form = new multiparty.Form({
-		uploadDir: './public/upload/'
-	});
-	var formParse = (req) => {
-		var form = new multiparty.Form({
-			uploadDir: './public/upload/'
-		});
-		return new Promise((resolve, reject) => {
-			form.parse(req, (err, fields, files) => {
-				if (err) return reject(err);
-
-				resolve({
-					fields,
-					files
-				});
-
-			});
-		});
-	}
-
-	formParse(req)
+	
+	utils.parseFormData(req)
 		.then(data => {
 			var fields = data.fields;
 			//验证是否为好友
@@ -162,14 +122,18 @@ router.post('/sendImgMsg', checkToken(), function (req, res, next) {
 			var src = '/' + files.imgFile[0].path.replace(/\\/g, '/');
 
 			//新建信息
-			return Msg.create({
-				fromUserId: tokenId,
-				relationId: relation._id,
-				content: src,
-				type: 1,
-			});
+			return Promise.all([
+				utils.manageImg('.'+src),
+				Msg.create({
+					fromUserId: tokenId,
+					relationId: relation._id,
+					content: src,
+					type: 1,
+				})
+			]);
 		})
-		.then(function (msg) {
+		.then(function (all) {
+			var msg = all[1];
 			//join数据
 			return msg.populate('_fromUser', '-password').execPopulate()
 		})

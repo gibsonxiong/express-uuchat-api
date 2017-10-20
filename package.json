@@ -5,8 +5,8 @@
   "scripts": {
     "start": "nodemon ./bin/www",
     "start:redis": "redis-server &",
-    "start:db":"mongod --config d:\\mongodb\\server\\3.4\\mongodb.config",
-    "debug":"node-inspector &"
+    "start:db": "mongod --config d:\\mongodb\\server\\3.4\\mongodb.config",
+    "debug": "node-inspector &"
   },
   "dependencies": {
     "alidayu-node": "^1.0.3",
@@ -24,6 +24,7 @@
     "multiparty": "^4.1.3",
     "redis": "^2.6.5",
     "serve-favicon": "~2.3.0",
+    "sharp": "^0.18.4",
     "socket.io": "^1.7.2"
   },
   "devDependencies": {

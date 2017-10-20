@@ -1,7 +1,6 @@
 var express = require('express');
 var Promise = require('bluebird');
 var router = express.Router();
-var multiparty = require('multiparty');
 // var path = require('path');
 var Timeline = require('../models/timeline');
 var TimelineComment = require('../models/timeline-comment');
@@ -10,6 +9,7 @@ var Relation = require('../models/relation');
 // var msgService = require('../services/msg');
 var checkToken = require('../middlewares/checkToken');
 var appConfig = require('../config/app-config');
+var utils = require('../utils');
 
 
 //查看朋友圈
@@ -65,29 +65,13 @@ router.get('/getTimelines', checkToken(), function (req, res, next) {
 //发表心情
 router.post('/publish', checkToken(), function (req, res, next) {
 	var tokenId = req.userId;
-	var form = new multiparty.Form({
-		uploadDir: './public/upload/'
-	});
-	var formParse = (req) => {
-		return new Promise((resolve, reject) => {
-			form.parse(req, (err, fields, files) => {
-				if (err) return reject(err);
-
-				resolve({
-					fields,
-					files
-				});
-
-			});
-		});
-	}
 
 	function resolvePath(path) {
 		return '/' + path.replace(/\\/g, '/');
 	}
 
 	//上传图片
-	formParse(req)
+	utils.parseFormData(req)
 		.then((param) => {
 			var fields = param.fields;
 			var files = param.files;

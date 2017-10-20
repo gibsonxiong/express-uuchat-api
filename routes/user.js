@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var fs = require('fs');
 var path = require('path');
-var multiparty = require('multiparty');
 var jwt = require('jsonwebtoken');
 var User = require('../models/user');
 var Relation = require('../models/relation');
@@ -14,6 +13,7 @@ var sms = require('../sms');
 var verificationCodesCache = {}; //验证码cache   
 var verificationCodeTimesCache = {}; //验证码请求次数cache
 var Promise = require('bluebird');
+var utils = require('../utils');
 
 //登录
 // params:
@@ -167,26 +167,10 @@ router.post('/checkVerificationCode', function (req, res, next) {
 
 //注册
 router.post('/signup', function (req, res, next) {
-	var form = new multiparty.Form({
-		uploadDir: './public/upload/'
-	});
 	var verify = Promise.promisify(jwt.verify);
-	var formParse = (req) => {
-		return new Promise((resolve, reject) => {
-			form.parse(req, (err, fields, files) => {
-				if (err) return reject(err);
-
-				resolve({
-					fields,
-					files
-				});
-
-			});
-		});
-	}
 
 	//上传图片
-	formParse(req)
+	utils.parseFormData(req)
 		.then((param) => {
 			var fields = param.fields;
 			var files = param.files;
@@ -475,39 +459,26 @@ router.get('/getOwn', checkToken(), function (req, res, next) {
 //修改昵称
 router.post('/modAvatar', checkToken(), function (req, res, next) {
 	var tokenId = req.userId;
-	var form = new multiparty.Form({
-		uploadDir: './public/upload/'
-	});
 
-	var formParse = (req) => {
-		return new Promise((resolve, reject) => {
-			form.parse(req, (err, fields, files) => {
-				if (err) return reject(err);
-
-				resolve({
-					fields,
-					files
-				});
-
-			});
-		});
-	}
-
-	formParse(req)
+	utils.parseFormData(req)
 		.then((data) => {
 			var files = data.files;
 			var src = files.file ? '/' + files.file[0].path.replace(/\\/g, '/') : '';
 
 			//修改数据库
-			return User.findByIdAndUpdate(tokenId, {
+			return Promise.all([
+				utils.manageImg('.'+src),
+				User.findByIdAndUpdate(tokenId, {
 					avatarSrc: src
 				}, {
 					new: true
 				})
 				.select('-password')
 				.exec()
-		})
-		.then(user => {
+			]);
+
+		}).then(all => {
+			var user = all[1];
 			if (!user) return res.apiResolve(null, -98, '数据出错！');
 
 			//推送修改过的user
