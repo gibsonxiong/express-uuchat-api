@@ -10,10 +10,18 @@ var sockets = {};
 
 
 io.on('connection', function (socket) {
+	// let handshake = socket.handshake;
+
+	//退出
+	socket.on('disconnect', function () {
+		delete sockets[socket.$userId];
+
+		console.log('[userId:' + socket.$userId + '] logout---------------');
+	});
 
 	//登录
 	socket.on('login', function (token, ack) {
-
+		
 		var verify = Promise.promisify(jwt.verify);
 
 		verify(token, appConfig.secret)
@@ -24,7 +32,7 @@ io.on('connection', function (socket) {
 
 				//如果已经在线
 				if (onlineSocket) {
-					onlineSocket.emit('forceQuit', null);
+					onlineSocket.emit('forceQuit');
 					onlineSocket.disconnect();
 				}
 
@@ -43,13 +51,6 @@ io.on('connection', function (socket) {
 			})
 
 
-	});
-
-	//退出
-	socket.on('disconnect', function () {
-		delete sockets[socket.$userId];
-
-		console.log('[userId:' + socket.$userId + '] logout---------------');
 	});
 
 });
