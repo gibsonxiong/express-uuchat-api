@@ -30,9 +30,17 @@ mongodb ~3.4
 
     下载地址：https://nodejs.org/en/download/
 
-3.npm install(cnpm install)  
+3.克隆代码，运行
+    
+    git clone https://github.com/gibsonxiong/express-uuchat-api.git
 
-4.npm start
+    cd express-uuchat-api
+
+    npm install 或者 yarn install
+
+    npm start 或者 yarn start
+
+
 
 
 
