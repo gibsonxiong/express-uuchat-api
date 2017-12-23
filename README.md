@@ -14,7 +14,6 @@ mongodb ~3.4
 
     配置文件启动 mongod --config d:\mongodb\server\3.4\mongodb.config
 
-    linux
     后台服务启动数据库
     
         mongod --dbpath="/var/mongodb/data" --logpath="/var/mongodb/log/mongodb.log" --fork 
