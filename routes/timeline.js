@@ -105,7 +105,7 @@ router.get('/likeTimeline/:timelineId', checkToken(), function (req, res, next) 
 	var timelineId = req.params['timelineId'];
 	var isLike = req.query['isLike'] === 'true' ? true : false;
 	var update = isLike ? {
-		$push: {
+		$addToSet: {
 			likeUserIds: tokenId,
 		}
 	} : {

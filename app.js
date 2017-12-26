@@ -6,12 +6,13 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var responseSender = require('./middlewares/responseSender');
-var cors = require('./middlewares/cors');			//处理跨域
+var cors = require('./middlewares/cors'); //处理跨域
 
 var routers = {
 	user: require('./routes/user'),
 	msg: require('./routes/msg'),
 	timeline: require('./routes/timeline'),
+	joke: require('./routes/joke')
 };
 
 var app = express();
@@ -41,9 +42,9 @@ app.use(cors());
 
 
 // 挂载路由
-app.use('/api/user', routers.user);
-app.use('/api/msg', routers.msg);
-app.use('/api/timeline', routers.timeline);
+Object.keys(routers).forEach(function (name) {
+	app.use('/api/' + name, routers[name]);
+});
 
 // // catch 404 and forward to error handler
 // app.use(function (req, res, next) {
@@ -55,7 +56,7 @@ app.use('/api/timeline', routers.timeline);
 // app.use(function (err, req, res, next) {
 // 	// set locals, only providing error in development
 // 	res.send({
-// 		code: -1,
+// 		code: -1,y
 // 		msg: err.message,
 // 	});
 // });

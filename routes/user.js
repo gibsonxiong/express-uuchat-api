@@ -30,9 +30,12 @@ router.post('/login', function (req, res, next) {
 
 	User.findOne()
 		.where({
-			$or:[
-				{username: username},
-				{mobile: username},
+			$or: [{
+					username: username
+				},
+				{
+					mobile: username
+				},
 			]
 		})
 		.exec()
@@ -76,20 +79,20 @@ router.post('/safe', function (req, res, next) {
 
 	jwt.verify(token, appConfig.secret, function (err, decoded) {
 		if (err) {
-			res.api(null, -1, 'token解析错误');
+			res.api(null, -1, '请重新登录');
 		}
 
 		if (userId != decoded.userId) {
-			res.api(null, -1, 'token跟userId不匹配');
+			res.api(null, -1, '请重新登录');
 		}
 
 		User.findById(userId)
 			.exec()
 			.then(user => {
-				if (!user) return res.apiResolve(null, -1, '该用户不存在')
+				if (!user) return res.apiResolve(null, -1, '请重新登录')
 				res.api(null);
 			})
-			.catch(res.catchHandler('token不正确'))
+			.catch(res.catchHandler('请重新登录'))
 
 
 
@@ -148,16 +151,16 @@ router.post('/checkVerificationCode', function (req, res, next) {
 		.then(users => {
 			var isExists = !!users.length;
 
-			if(isExists){
-				return res.api(null,1,'手机已被注册过');
-			}else{
+			if (isExists) {
+				return res.api(null, 1, '手机已被注册过');
+			} else {
 				var mobileToken = jwt.sign(mobile, appConfig.secret);
-				
+
 				res.api({
 					mobileToken: mobileToken
 				});
 			}
-			
+
 		})
 		.catch(res.catchHandler('查找用户失败！'));
 
@@ -167,6 +170,35 @@ router.post('/checkVerificationCode', function (req, res, next) {
 
 //注册
 router.post('/signup', function (req, res, next) {
+	var mobileToken = req.body.mobileToken;
+	var username = req.body.username;
+	var password = req.body.password;
+
+	var verify = Promise.promisify(jwt.verify);
+
+	verify(mobileToken, appConfig.secret)
+		.then(mobile => {
+
+			//修改数据库
+			return User.create({
+				mobile: mobile,
+				username: username,
+				password: password,
+				// avatarSrc: '',
+				// nickname: '',
+				// gender: '',
+				// motto: ''
+			});
+		})
+		.then(user => {
+			res.api(user, 0, '注册成功！');
+		})
+		.catch(res.catchHandler('注册用户失败！'));
+
+});
+
+//注册
+router.post('/setInfo', function (req, res, next) {
 	var verify = Promise.promisify(jwt.verify);
 
 	//上传图片
@@ -188,49 +220,23 @@ router.post('/signup', function (req, res, next) {
 			var fields = param.fields;
 			var src = param.src;
 
-			//修改数据库
-			return User.create({
-				mobile: mobile,
-				username: fields.username[0],
-				password: fields.password[0],
-				avatarSrc: src,
-				nickname: fields.nickname[0],
-				gender: new Number(fields.gender[0]),
-			})
+			return User.findOneAndUpdate({
+					mobile: mobile
+				}, {
+					avatarSrc: src,
+					nickname: fields.nickname[0],
+					gender: new Number(fields.gender[0]),
+					motto:fields.motto[0]
+				}, {
+					new: true
+				})
+				.select('-password')
+				.exec()
 		})
 		.then(user => {
-			res.api(user, 0, '注册成功！');
+			res.api(user, 0, '保存成功！');
 		})
-		.catch(res.catchHandler('注册用户失败！'));
-
-});
-
-//注册
-router.post('/signup1', function (req, res, next) {
-	var mobileToken = req.body.mobileToken;
-	var username = req.body.username;
-	var password = req.body.password;
-
-	var verify = Promise.promisify(jwt.verify);
-
-	verify(mobileToken, appConfig.secret)
-		.then(mobile => {
-
-			//修改数据库
-			return User.create({
-				mobile: mobile,
-				username: username,
-				password: password,
-				avatarSrc: '',
-				nickname: '',
-				gender: '',
-				motto:''
-			});
-		})
-		.then(user => {
-			res.api(user, 0, '注册成功！');
-		})
-		.catch(res.catchHandler('注册用户失败！'));
+		.catch(res.catchHandler('保存失败！'));
 
 });
 
@@ -467,7 +473,7 @@ router.post('/modAvatar', checkToken(), function (req, res, next) {
 
 			//修改数据库
 			return Promise.all([
-				utils.manageImg('.'+src),
+				utils.manageImg('.' + src),
 				User.findByIdAndUpdate(tokenId, {
 					avatarSrc: src
 				}, {
@@ -611,7 +617,7 @@ router.get('/existsByUsername/:username', function (req, res, next) {
 router.get('/form', function (req, res, next) {
 	debugger;
 
-	
+
 
 });
 
